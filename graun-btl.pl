@@ -6,6 +6,9 @@ use strict;
 use WWW::Mechanize ();
 use JSON ();
 
+my $uid_pref = "GUU";
+my $cid_pref = "GUC";
+
 binmode STDOUT, ":encoding(UTF-8)";
 
 if(scalar(@ARGV) == 0) {
@@ -48,6 +51,10 @@ my $pp = 1;
 my $n_cmt = 1000;
 my %comments;
 my %responses;
+my %cids;
+my %uids;
+my $nxt_cid = 0;
+my $nxt_uid = 0;
 while(scalar(keys(%comments)) < $n_cmt) {
   my $page = WWW::Mechanize->new();
   push(@pages, $page);
@@ -81,6 +88,8 @@ while(scalar(keys(%comments)) < $n_cmt) {
     my $n_resp = $json->{'discussion'}->{'comments'}->[$i]->{'metaData'}->{'responseCount'};
 
     $comments{$id} = [$id, $uid, $dt, $rec, $hi, $txt];
+    $cids{$id} = ++$nxt_cid if !defined($cids{$id});
+    $uids{$uid} = ++$nxt_uid if !defined($uids{$uid});
 
     for(my $j = 0; $j < $n_resp; $j++) {
       my $resp_id = $json->{'discussion'}->{'comments'}->[$i]->{'responses'}->[$j]->{'id'};
@@ -92,11 +101,16 @@ while(scalar(keys(%comments)) < $n_cmt) {
 
       $responses{$resp_id} = $id;
       $comments{$resp_id} = [$resp_id, $resp_uid, $resp_dt, $resp_rec, $resp_hi, $resp_txt];
+      $cids{$resp_id} = ++$nxt_cid if !defined($cids{$resp_id});
+      $uids{$resp_uid} = ++$nxt_uid if !defined($uids{$resp_uid});
     }
   }
 
   $pp++;
 }
+
+my $nc_dig = length(sprintf("%d", scalar(keys(%cids))));
+my $nu_dig = length(sprintf("%d", scalar(keys(%uids))));
 
 print "Comment ID,Comment ID Responding To,User ID,Date Time,Recommendations,Highlighted?,Comment Text\n";
 foreach my $cid (sort(keys(%comments))) {
@@ -108,9 +122,12 @@ foreach my $cid (sort(keys(%comments))) {
   $txt =~ s/\"/\"\"/g;
   $txt = "\"$txt\"";
 
-  my $resp_to = (defined($responses{$id}) ? $responses{$id} : "NA");
+  my $pcid = sprintf("${cid_pref}%0*d", $nc_dig, $cids{$id});
+  my $puid = sprintf("${uid_pref}%0*d", $nu_dig, $uids{$uid});
 
-  print "$id,$resp_to,$uid,$dt,$rec,$hi,$txt\n"
+  my $resp_to = (defined($responses{$id}) ? sprintf("${cid_pref}%0*d", $nc_dig, $cids{$responses{$id}}) : "NA");
+
+  print "$pcid,$resp_to,$puid,$dt,$rec,$hi,$txt\n"
 }
 
 if(scalar(keys(%comments)) < $n_cmt) {

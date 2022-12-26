@@ -6,6 +6,8 @@ use strict;
 use WWW::Mechanize ();
 use JSON ();
 
+binmode STDOUT, ":encoding(UTF-8)";
+
 if(scalar(@ARGV) == 0) {
   die "Usage: $0 <Guardian Article URL>\n";
 }
@@ -73,24 +75,34 @@ while(scalar(keys(%comments)) < $n_cmt) {
     my $id = $json->{'discussion'}->{'comments'}->[$i]->{'id'};
     my $uid = $json->{'discussion'}->{'comments'}->[$i]->{'userProfile'}->{'userId'};
     my $txt = $json->{'discussion'}->{'comments'}->[$i]->{'body'};
+    my $dt = $json->{'discussion'}->{'comments'}->[$i]->{'isoDateTime'};
+    my $hi = $json->{'discussion'}->{'comments'}->[$i]->{'isHighlighted'};
+    my $rec = $json->{'discussion'}->{'comments'}->[$i]->{'numRecommends'};
     my $n_resp = $json->{'discussion'}->{'comments'}->[$i]->{'metaData'}->{'responseCount'};
 
-    $comments{$id} = [$id, $uid, $txt];
+    $comments{$id} = [$id, $uid, $dt, $rec, $hi, $txt];
 
     for(my $j = 0; $j < $n_resp; $j++) {
       my $resp_id = $json->{'discussion'}->{'comments'}->[$i]->{'responses'}->[$j]->{'id'};
       my $resp_uid = $json->{'discussion'}->{'comments'}->[$i]->{'responses'}->[$j]->{'userProfile'}->{'userId'};
       my $resp_txt = $json->{'discussion'}->{'comments'}->[$i]->{'responses'}->[$j]->{'body'};
+      my $resp_dt = $json->{'discussion'}->{'comments'}->[$i]->{'responses'}->[$j]->{'isoDateTime'};
+      my $resp_hi = $json->{'discussion'}->{'comments'}->[$i]->{'responses'}->[$j]->{'isHighlighted'};
+      my $resp_rec = $json->{'discussion'}->{'comments'}->[$i]->{'responses'}->[$j]->{'numRecommends'};
+
       $responses{$resp_id} = $id;
-      $comments{$id} = [$resp_id, $resp_uid, $resp_txt];
+      $comments{$resp_id} = [$resp_id, $resp_uid, $resp_dt, $resp_rec, $resp_hi, $resp_txt];
     }
   }
 
   $pp++;
 }
 
+print "Comment ID,Comment ID Responding To,User ID,Date Time,Recommendations,Highlighted?,Comment Text\n";
 foreach my $cid (sort(keys(%comments))) {
-  my ($id, $uid, $txt) = @{$comments{$cid}};
+  my ($id, $uid, $dt, $rec, $hi, $txt) = @{$comments{$cid}};
+
+  next if $id !~ /./;
 
   $txt =~ s/\n/ /g;
   $txt =~ s/\"/\"\"/g;
@@ -98,11 +110,11 @@ foreach my $cid (sort(keys(%comments))) {
 
   my $resp_to = (defined($responses{$id}) ? $responses{$id} : "NA");
 
-  print "$id,$resp_to,$uid,$txt\n"
+  print "$id,$resp_to,$uid,$dt,$rec,$hi,$txt\n"
 }
 
 if(scalar(keys(%comments)) < $n_cmt) {
-  warn "I only got ", scalar(keys(%comments)), " of $n_cmt comments\n";
+  warn "I only got ", scalar(keys(%comments)), " of $n_cmt comments after $pp pages\n";
 }
 
 exit 0;

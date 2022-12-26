@@ -17,4 +17,4 @@ Output:
 | --- | --- | --- | --- | --- | --- | --- |
 | e.g. `GUC001` | `NA` if not a response | e.g. `GUU001` | ISO 8601 format | Number of 'upticks' | `1` if highlighted by editor, `0` if not | Text with any HTML markup |
 
-Comments are extracted in the order returned by the JSON output from [The Guardian's discussion API](http://discussion.theguardian.com/discussion-api/). Since responses to comments are embedded in the entry for their comment, this means sorting by comment ID will get you comments then responses row-by-row -- it also means sorting by date-time order will not get you ascending order of comments.
+Comments are extracted in the order returned by the JSON output from [The Guardian's discussion API](http://discussion.theguardian.com/discussion-api/). Since responses to comments are embedded in the entry for their comment, this means sorting by comment ID will get you comments then responses row-by-row -- it also means sorting by date-time order will not get you ascending order of comment IDs.

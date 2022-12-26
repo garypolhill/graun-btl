@@ -12,9 +12,7 @@ Command-line options:
   +	--discussion-id D: use D as a discussion ID rather than extracting it from the article URL
   
 Output:
-
-| --- | --- | --- | --- | --- | --- | --- | 
+ 
 | Comment ID | Comment ID Responding To | User ID | Date Time | Recommendations | Highlighted? | Comment Text |
 | --- | --- | --- | --- | --- | --- | --- |
 | e.g. `GUC001` | `NA` if not a response | e.g. `GUU001` | ISO 8601 format | Number of 'upticks' | `1` if highlighted by editor | Text with any HTML markup |
-| --- | --- | --- | --- | --- | --- | --- |

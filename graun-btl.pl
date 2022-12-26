@@ -8,10 +8,13 @@ use JSON ();
 
 my $uid_pref = "GUU";
 my $cid_pref = "GUC";
+my @p_id;
+my $cmd_p_id = 0;
 
 binmode STDOUT, ":encoding(UTF-8)";
 
-my $usage_str = "Usage: $0 [--user-id-prefix <string>] [--comment-id-prefix <string>] <Guardian Article URL>";
+my $usage_str = "Usage: $0 [--user-id-prefix <string>] [--comment-id-prefix <string>] "
+  ."{[--discussion-id <string>]|<Guardian Article URL>}";
 
 if(scalar(@ARGV) == 0) {
   die "$usage_str\n";
@@ -25,6 +28,10 @@ while($ARGV[0] =~ /^-/) {
   elsif($opt eq "--comment-id-prefix" || $opt eq "-c") {
     $cid_pref = shift(@ARGV);
   }
+  elsif($opt eq "--discussion-id" || $opt eq "-D") {
+    push(@p_id, shift(@ARGV));
+    $cmd_p_id = 1;
+  }
   else {
     die "$usage_str\n\n"
       ."Download comments from a Guardian article into a CSV format (use output redirect\nto save).\n\n"
@@ -32,37 +39,40 @@ while($ARGV[0] =~ /^-/) {
       ."program.\n\n"
       ."\t--user-id-prefix P: use P as a prefix in front of user ID numbers\n\t\t(default \"$uid_pref\")\n"
       ."\t--comment-id-prefix P: use P as a prefix in front of comment ID numbers\n\t\t(default "
-      ."\"$cid_pref\")\n";
+      ."\"$cid_pref\")\n"
+      ."\t--discussion-id D: use D as a discussion ID rather than extracting it\n\t\tfrom the "
+      ."article URL\n";
   }
 }
 
-my $url = shift(@ARGV);
-my $mech = WWW::Mechanize->new();
-$mech->get($url);
+if(!$cmd_p_id) {
+  my $url = shift(@ARGV);
+  my $mech = WWW::Mechanize->new();
+  $mech->get($url);
 
-if(!$mech->success()) {
-  die "Could not read from URL \"$url\": ", $mech->status(), "\n";
-}
-if(!$mech->is_html()) {
-  die "URL \"$url\" is not HTML\n";
-}
+  if(!$mech->success()) {
+    die "Could not read from URL \"$url\": ", $mech->status(), "\n";
+  }
+  if(!$mech->is_html()) {
+    die "URL \"$url\" is not HTML\n";
+  }
 
-my $html = $mech->content();
+  my $html = $mech->content();
 
-my @p_id;
-foreach my $word (split(" ", $html)) {
-  if($word =~ /discussion\.theguardian\.com\/discussion-api/ && $word =~ /shortUrlId/) {
-    if($word =~ /\/p\/([a-zA-Z0-9]+)/) {
-      push(@p_id, $1);
+  foreach my $word (split(" ", $html)) {
+    if($word =~ /discussion\.theguardian\.com\/discussion-api/ && $word =~ /shortUrlId/) {
+      if($word =~ /\/p\/([a-zA-Z0-9]+)/) {
+        push(@p_id, $1);
+      }
     }
   }
-}
-if(scalar(@p_id) == 0) {
-  die "Cannot find a comment reference number in Guardian article \"$url\"\n";
-}
-for(my $i = 1; $i <= $#p_id; $i++) {
-  if($p_id[0] ne $p_id[$i]) {
-    die "Non-unique comment reference numbers $p_id[0] and $p_id[$i] found in Guardian article \"$url\"\n";
+  if(scalar(@p_id) == 0) {
+    die "Cannot find a comment reference number in Guardian article \"$url\"\n";
+  }
+  for(my $i = 1; $i <= $#p_id; $i++) {
+    if($p_id[0] ne $p_id[$i]) {
+      die "Non-unique comment reference numbers $p_id[0] and $p_id[$i] found in Guardian article \"$url\"\n";
+    }
   }
 }
 

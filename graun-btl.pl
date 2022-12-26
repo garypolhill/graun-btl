@@ -11,8 +11,29 @@ my $cid_pref = "GUC";
 
 binmode STDOUT, ":encoding(UTF-8)";
 
+my $usage_str = "Usage: $0 [--user-id-prefix <string>] [--comment-id-prefix <string>] <Guardian Article URL>";
+
 if(scalar(@ARGV) == 0) {
-  die "Usage: $0 <Guardian Article URL>\n";
+  die "$usage_str\n";
+}
+
+while($ARGV[0] =~ /^-/) {
+  my $opt = shift(@ARGV);
+  if($opt eq "--user-id-prefix" || $opt eq "-u") {
+    $uid_pref = shift(@ARGV);
+  }
+  elsif($opt eq "--comment-id-prefix" || $opt eq "-c") {
+    $cid_pref = shift(@ARGV);
+  }
+  else {
+    die "$usage_str\n\n"
+      ."Download comments from a Guardian article into a CSV format (use output redirect\nto save).\n\n"
+      ."Guardian-assigned user IDs and comment IDs are replaced with new numbers\nprovided by this "
+      ."program.\n\n"
+      ."\t--user-id-prefix P: use P as a prefix in front of user ID numbers\n\t\t(default \"$uid_pref\")\n"
+      ."\t--comment-id-prefix P: use P as a prefix in front of comment ID numbers\n\t\t(default "
+      ."\"$cid_pref\")\n";
+  }
 }
 
 my $url = shift(@ARGV);

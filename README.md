@@ -1,7 +1,7 @@
 # graun-btl
 Download comments from a discussion on an article on the [Guardian](https://www.theguardian.com/) website
 
-Usage: `./graun-btl.pl [--user-id-prefix <string>] [--comment-id-prefix <string>] {[--discussion-id <string>]|<Guardian Article URL>}`
+Usage: `./graun-btl.pl [--user-id-prefix <string>] [--comment-id-prefix <string>] [--remove-markup] [--columns <column codes>] [--column-as <column code> <heading>] {[--discussion-id <string>]|<Guardian Article URL>}`
 
 Use output redirect to save the results to a file. Guardian-assigned user IDs and comment IDs are replaced with new numbers provided by this program in its output.
 
